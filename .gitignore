@@ -1,0 +1,33 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Ultralytics training runs, artifacts, and test outputs
+runs/
+*.log
+
+# Large datasets (managed via Roboflow / downloaded on demand)
+thai-char-*/
+Thai-license-plate-*/
+*.zip
+*.tar.gz
+
+# Environment variables & credentials
+.env
+.env.*
+*.key
+
+# Operating System files
+Thumbs.db
+.DS_Store
+
+# IDE and Editor configurations
+.vscode/
+.idea/
