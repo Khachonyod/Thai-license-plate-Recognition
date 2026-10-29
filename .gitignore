@@ -12,8 +12,10 @@ env/
 # Ultralytics training runs, artifacts, and test outputs
 runs/
 *.log
+weights/easyocr/
 
 # Large datasets (managed via Roboflow / downloaded on demand)
+datasets/
 thai-char-*/
 Thai-license-plate-*/
 *.zip
