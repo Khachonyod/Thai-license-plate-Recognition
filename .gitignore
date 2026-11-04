@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pytest_cache/
 
 # Virtual environments
 .venv/
@@ -11,13 +12,15 @@ env/
 
 # Ultralytics training runs, artifacts, and test outputs
 runs/
+run_test_log/
 *.log
 weights/easyocr/
 
 # Large datasets (managed via Roboflow / downloaded on demand)
 datasets/
-thai-char-*/
-Thai-license-plate-*/
+*thai-char-*/
+*Thai-char-*/
+*Thai-license-plate-*/
 *.zip
 *.tar.gz
 

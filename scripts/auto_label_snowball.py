@@ -68,6 +68,8 @@ CHAR_TO_CLASS = {
     "ฮ": 16,  # hor-nok-hooke
 }
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 PROVINCE_CLASS = 5  # Province
 
 
@@ -95,7 +97,7 @@ def main():
     if not src_dir.is_dir():
         raise SystemExit(f"ไม่พบโฟลเดอร์ภาพ: {src_dir}")
 
-    dest_dir = Path(args.dest)
+    dest_dir = Path(args.dest) if Path(args.dest).is_absolute() else PROJECT_ROOT / args.dest
     train_img_dir = dest_dir / "train" / "images"
     train_lbl_dir = dest_dir / "train" / "labels"
     val_img_dir = dest_dir / "valid" / "images"
@@ -105,7 +107,11 @@ def main():
         d.mkdir(parents=True, exist_ok=True)
 
     # 1. คัดลอกข้อมูลเดิมจากเวอร์ชันก่อนหน้า (thai-char-v2 หรือ thai-char-detection-1) มารวมด้วย
-    prev_dir = Path("thai-char-v2") if Path("thai-char-v2").is_dir() else Path("thai-char-detection-1")
+    prev_dir = (
+        (PROJECT_ROOT / "thai-char-v2")
+        if (PROJECT_ROOT / "thai-char-v2").is_dir()
+        else (PROJECT_ROOT / "thai-char-detection-1")
+    )
     if prev_dir.is_dir() and prev_dir.resolve() != dest_dir.resolve():
         print(f"กำลังรวมข้อมูลเดิมจาก {prev_dir.name} เข้ามาในชุดใหม่...")
         for split in ["train", "valid"]:
