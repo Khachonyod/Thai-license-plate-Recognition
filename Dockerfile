@@ -1,7 +1,8 @@
 FROM python:3.10-slim
 
 ENV PYTHONUNBUFFERED=1 \
-    DEBIAN_FRONTEND=noninteractive
+    DEBIAN_FRONTEND=noninteractive \
+    MALLOC_TRIM_THRESHOLD_=100000
 
 WORKDIR /app
 
@@ -29,4 +30,5 @@ COPY . .
 # Expose port (Render sets PORT env variable dynamically)
 EXPOSE 8000
 
-CMD ["sh", "-c", "uvicorn api:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Run uvicorn with 1 worker to strictly respect the 512MB RAM limit
+CMD ["sh", "-c", "uvicorn api:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --limit-concurrency 5"]

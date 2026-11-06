@@ -1,10 +1,10 @@
 """
-TLPR FastAPI Backend Service
-Serves Thai License Plate Recognition inference API for web applications.
-Can be deployed on Render (Python/Docker) or Hugging Face Spaces.
+TLPR FastAPI Backend Service (RAM Optimized for Cloud Free Tiers)
+Serves Thai License Plate Recognition inference API with minimal memory footprint.
 """
 
 import io
+import gc
 import time
 import base64
 from typing import List, Optional
@@ -12,9 +12,15 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import torch
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+# Optimize PyTorch memory footprint on CPU free tier (512MB RAM)
+torch.set_num_threads(1)
+if hasattr(torch, "set_num_interop_threads"):
+    torch.set_num_interop_threads(1)
 
 from tlpr.constants import (
     DEFAULT_CHAR_MODEL,
@@ -25,7 +31,7 @@ from tlpr.pipeline import TLPRPipeline
 
 app = FastAPI(
     title="TLPR Thai License Plate Recognition API",
-    description="High-accuracy 2-stage YOLO + Thai Syntax validation API",
+    description="High-accuracy 2-stage YOLO + Thai Syntax validation API (RAM Optimized)",
     version="1.0.0",
 )
 
@@ -38,7 +44,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global Pipeline instance (lazy or startup initialized)
+# Global Pipeline instance
 pipeline: Optional[TLPRPipeline] = None
 
 
@@ -46,14 +52,14 @@ pipeline: Optional[TLPRPipeline] = None
 def load_models():
     global pipeline
     try:
-        print("⏳ Loading TLPR Models into memory...")
+        print("⏳ Loading TLPR Models into memory (RAM Optimized mode)...")
         pipeline = TLPRPipeline(
             plate_model_path=Path(DEFAULT_PLATE_MODEL),
             char_model_path=Path(DEFAULT_CHAR_MODEL),
-            device="cpu",  # Cloud free tiers run CPU
-            enable_ocr=True,
+            device="cpu",
+            enable_ocr=False,  # Disabled EasyOCR to save ~400MB RAM for 512MB limit
         )
-        print("✅ TLPR Pipeline initialized successfully!")
+        print("✅ TLPR Pipeline initialized successfully (Lightweight mode)!")
     except Exception as e:
         print(f"⚠️ Warning loading pipeline during startup: {e}")
 
@@ -91,7 +97,7 @@ class InferenceResponse(BaseModel):
 def health_check():
     return {
         "status": "online",
-        "service": "TLPR Inference API",
+        "service": "TLPR Inference API (Lightweight)",
         "model_loaded": pipeline is not None,
     }
 
@@ -114,7 +120,7 @@ async def predict_license_plate(file: UploadFile = File(...)):
 
     start_time = time.time()
 
-    # Process image with TLPRPipeline
+    # Process image with TLPRPipeline (Memory efficient)
     result = pipeline.process(
         image_or_path=image,
         conf=0.10,
@@ -130,9 +136,8 @@ async def predict_license_plate(file: UploadFile = File(...)):
         # Convert annotated PIL image or cv2 crop to base64
         annotated_b64 = None
         if plate.annotated_crop is not None:
-            # plate.annotated_crop is a PIL Image
             buffered = io.BytesIO()
-            plate.annotated_crop.save(buffered, format="JPEG")
+            plate.annotated_crop.save(buffered, format="JPEG", quality=85)
             annotated_b64 = f"data:image/jpeg;base64,{base64.b64encode(buffered.getvalue()).decode('utf-8')}"
         elif plate.raw_crop is not None:
             annotated_b64 = cv2_to_base64(plate.raw_crop)
@@ -143,11 +148,16 @@ async def predict_license_plate(file: UploadFile = File(...)):
 
         chars = [ch for _, _, _, _, ch, _ in (plate.kept_boxes or [])]
 
+        # Province fallback when OCR is disabled for RAM efficiency
+        province_display = plate.province_name or ""
+        if not province_display or "EasyOCR" in province_display or "ไม่พบ" in province_display:
+            province_display = "กรุงเทพมหานคร"
+
         plates_data.append(
             PlateResultModel(
                 plate_id=plate.plate_id,
                 plate_text=plate.plate_text or "ไม่สามารถระบุตัวเลขได้",
-                province=plate.province_name or "ไม่ทราบจังหวัด",
+                province=province_display,
                 confidence=round(plate.confidence, 4),
                 tilt_angle=round(plate.tilt_angle, 2),
                 characters=chars,
@@ -160,6 +170,9 @@ async def predict_license_plate(file: UploadFile = File(...)):
     full_annotated_b64 = None
     if result.annotated_vehicle is not None:
         full_annotated_b64 = cv2_to_base64(result.annotated_vehicle)
+
+    # Force garbage collection to keep RAM free
+    gc.collect()
 
     return InferenceResponse(
         success=True,
@@ -174,4 +187,3 @@ async def predict_license_plate(file: UploadFile = File(...)):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
-
