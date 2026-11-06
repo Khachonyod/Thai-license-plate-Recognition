@@ -66,6 +66,23 @@ pip install -r requirements.txt
 ```
 
 ### 2. รันโปรแกรมทดสอบอ่านป้ายทะเบียน
+
+#### 🖥️ ใช้งานผ่านโปรแกรม GUI (TLPR Studio) - รองรับทั้งภาพและวิดีโอคลิป
+```bash
+# เปิดใช้งานหน้าต่าง GUI Studio แบบเต็มรูปแบบ
+python tlpr_gui.py
+
+# หรือเปิดผ่าน app.py ด้วย flag --gui
+python app.py --gui
+```
+> **ฟังก์ชันใน TLPR Studio GUI:**
+> - นำเข้าภาพนิ่ง (`.jpg`, `.png`, `.webp`, ฯลฯ) หรือคลิปวิดีโอ (`.mp4`, `.avi`, `.mov`, ฯลฯ)
+> - ควบคุมการเล่นวิดีโอ (Play / Pause / Stop / Seek Bar / ข้ามเฟรม Frame Skip)
+> - ปรับแต่ง Pre-processing แบบ Real-Time (CLAHE, Denoising, Rectification, Binarization)
+> - แสดงผลขั้นตอน Pre-processing แต่ละสเตจ (Raw Crop, Enhanced, Rectified, Binarized, Chars)
+> - บันทึกภาพ Snapshot หรืออัดคลิปวิดีโอผลลัพธ์เป็นไฟล์ MP4
+
+#### ⚙️ ใช้งานผ่าน Command Line (CLI)
 ```bash
 # ทดสอบอ่านป้ายทะเบียนจากภาพตัวอย่าง (ใช้ samples/test.jpg เป็นค่าเริ่มต้น)
 python app.py

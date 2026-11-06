@@ -49,6 +49,11 @@ def main() -> None:
         description="2-Stage End-to-End YOLO Thai License Plate Recognition System (Syntax Validated)"
     )
     parser.add_argument(
+        "--gui",
+        action="store_true",
+        help="Launch the interactive TLPR Studio GUI (Supports Images, Videos, and Pre-processing Lab)",
+    )
+    parser.add_argument(
         "image",
         nargs="?",
         default=get_default_sample_image(),
@@ -125,6 +130,11 @@ def main() -> None:
         help="Disable EasyOCR for province detection",
     )
     args = parser.parse_args()
+
+    if args.gui:
+        from tlpr_gui import main as launch_gui
+        launch_gui()
+        return
 
     image_path = Path(args.image)
     plate_model_path = Path(args.plate_model)

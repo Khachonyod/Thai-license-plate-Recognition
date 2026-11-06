@@ -238,9 +238,6 @@ def parse_thai_license_syntax(
             if digit_cands:
                 cand = digit_cands[0]
                 cls_name = cand["cls"]
-                # ตรวจสอบสัดส่วนความกว้างต่อความสูงของเลข 1 กับ 7
-                if cls_name == "Seven" and (slot_bw / slot_bh) < 0.48:
-                    cls_name = "One"
                 char_text = CLASS_NAME_TO_CHAR.get(cls_name, cls_name)
                 conf = cand["conf"]
             else:
